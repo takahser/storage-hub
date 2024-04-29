@@ -233,11 +233,7 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::TryRuntime) => Err("The `try-runtime` subcommand has been migrated to a standalone CLI (https://github.com/paritytech/try-runtime-cli). It is no longer being maintained here and will be removed entirely some time after January 2024. Please remove this subcommand from your runtime and use the standalone CLI.".into()),
 		None => {
 			let runner = cli.create_runner(&cli.run.normalize())?;
-            let provider_options = if cli.provider_config.provider {
-                Some(cli.provider_config.provider_options())
-            } else {
-                None
-            };
+            let running_mode_config = cli.running_mode_config;
 
 			runner.run_node_until_exit(|config| async move {
 				let hwbench = (!cli.no_hardware_benchmarks)
@@ -259,7 +255,7 @@ pub fn run() -> Result<()> {
                 if cli.run.base.shared_params.is_dev() {
                     crate::service::start_dev_node(
                         config,
-                        provider_options,
+                        running_mode_config,
                         hwbench,
                         id,
                     )
@@ -289,7 +285,7 @@ pub fn run() -> Result<()> {
                         config,
                         polkadot_config,
                         collator_options,
-                        provider_options,
+                        running_mode_config,
                         id,
                         hwbench,
                     )

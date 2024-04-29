@@ -215,6 +215,7 @@ impl FileTransferService {
         _peer: PeerId,
         _payload: Vec<u8>,
     ) -> Result<(), SendUploadDataRequestError> {
+        // Waiting for FileTransfer send request implementation.
         Ok(())
     }
 

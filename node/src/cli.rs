@@ -58,7 +58,7 @@ pub enum ProviderType {
 
 #[derive(Debug, Parser)]
 #[group(skip)]
-pub struct ProviderConfigurations {
+pub struct RunningModeConfig {
     /// Run node as a StorageHub provider.
     #[arg(long)]
     pub provider: bool,
@@ -75,9 +75,15 @@ pub struct ProviderConfigurations {
     /// Fixed value to generate deterministic peer id.
     #[clap(long, value_name = "SEED_FILE", required_if_eq("provider", "true"))]
     pub seed_file: Option<String>,
+
+    // Temporarily assuming the user is not a parachain (until we have an XCM interface)
+    // but a human running StorageHub on her machine.
+    // TODO: ditch this after we have the XCM interface implementation.
+    #[clap(long)]
+    pub user: bool,
 }
 
-impl ProviderConfigurations {
+impl RunningModeConfig {
     pub fn provider_options(&self) -> ProviderOptions {
         ProviderOptions {
             provider_type: self
@@ -130,7 +136,7 @@ pub struct Cli {
     pub relay_chain_args: Vec<String>,
 
     #[command(flatten)]
-    pub provider_config: ProviderConfigurations,
+    pub running_mode_config: RunningModeConfig,
 }
 
 #[derive(Debug)]

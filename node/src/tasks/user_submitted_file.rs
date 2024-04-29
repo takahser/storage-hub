@@ -43,16 +43,18 @@ impl<SHC: StorageHubHandlerConfig> EventHandler<AcceptedBspVolunteer>
 
         let _multiaddresses = event.multiaddresses;
         let _file_location = event.location;
+        
         // Mocked PeerId
         let peer_id = PeerId::random();
-        // let chunk_count = event.file_metadata.chunk_count();
+
         // Mocked count:
         let chunk_count = 100u64;
 
         for _chunk_idx in 0..chunk_count {
-            // Depends on FileStorage trait implementation
+            // Mocked chunk
             // let chunk = self.storage_hub_handler.file_storage.get_chunk();
             let chunk = "Mocked Data".as_bytes();
+            
             let _ = self
                 .storage_hub_handler
                 .file_transfer

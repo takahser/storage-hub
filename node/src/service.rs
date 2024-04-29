@@ -49,7 +49,7 @@ use substrate_prometheus_endpoint::Registry;
 use tokio::sync::RwLock;
 
 use crate::{
-    cli::ProviderType,
+    cli::{ProviderType, RunningModeConfig},
     command::ProviderOptions,
     services::{
         blockchain::{spawn_blockchain_service, KEY_TYPE},
@@ -197,7 +197,7 @@ pub fn new_partial(
 #[sc_tracing::logging::prefix_logs_with("Solo chain 💾")]
 async fn start_dev_impl(
     config: Configuration,
-    provider_options: Option<ProviderOptions>,
+    running_mode_config: RunningModeConfig,
     hwbench: Option<sc_sysinfo::HwBench>,
     para_id: ParaId,
 ) -> sc_service::error::Result<TaskManager> {
@@ -236,7 +236,8 @@ async fn start_dev_impl(
     // Spawning File Transfer Service if node is running as a Storage Provider.
     // This is done here because the File Transfer Service modifies the network configuration.
     let mut file_transfer_service_handle = None;
-    if provider_options.is_some() {
+
+    if running_mode_config.provider {
         let task_spawner = TaskSpawner::new(task_manager.spawn_handle(), "generic");
 
         file_transfer_service_handle = Some(
@@ -312,7 +313,7 @@ async fn start_dev_impl(
     })?;
 
     // Spawning the Blockchain Service if node is running as a Storage Provider.
-    if let Some(provider_options) = provider_options {
+    if running_mode_config.provider {
         // File Transfer Service handle is expected to be present when the node is running as a Storage Provider.
         let file_transfer_service_handle = file_transfer_service_handle.expect(
             "File Transfer Service handle is expected to be present when the node is running as a Storage Provider. qed",
@@ -354,10 +355,15 @@ async fn start_dev_impl(
             forest_storage,
         );
 
-        // Starting the tasks according to the provider type.
-        match provider_options.provider_type {
+        // Start tasks according to the provider type.
+        match running_mode_config.provider_options().provider_type {
             ProviderType::Bsp => sh_handler.start_bsp_tasks(),
             _ => {}
+        }
+
+        // Start user tasks if running in User mode.
+        if running_mode_config.user {
+            sh_handler.start_user_tasks()
         }
     }
 
@@ -495,7 +501,7 @@ async fn start_node_impl(
     parachain_config: Configuration,
     polkadot_config: Configuration,
     collator_options: CollatorOptions,
-    provider_options: Option<ProviderOptions>,
+    running_mode_config: RunningModeConfig,
     para_id: ParaId,
     hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
@@ -520,7 +526,7 @@ async fn start_node_impl(
     // Spawning File Transfer Service if node is running as a Storage Provider.
     // This is done here because the File Transfer Service modifies the network configuration.
     let mut file_transfer_service_handle = None;
-    if provider_options.is_some() {
+    if running_mode_config.provider {
         let task_spawner = TaskSpawner::new(task_manager.spawn_handle(), "generic");
 
         file_transfer_service_handle = Some(
@@ -618,7 +624,7 @@ async fn start_node_impl(
     })?;
 
     // Spawning the Blockchain Service if node is running as a Storage Provider.
-    if let Some(provider_options) = provider_options {
+    if running_mode_config.provider {
         // File Transfer Service handle is expected to be present when the node is running as a Storage Provider.
         let file_transfer_service_handle = file_transfer_service_handle.expect(
             "File Transfer Service handle is expected to be present when the node is running as a Storage Provider. qed",
@@ -661,10 +667,15 @@ async fn start_node_impl(
             forest_storage,
         );
 
-        // Starting the tasks according to the provider type.
-        match provider_options.provider_type {
+        // Start tasks according to the provider type.
+        match running_mode_config.provider_options().provider_type {
             ProviderType::Bsp => sh_handler.start_bsp_tasks(),
             _ => {}
+        }
+
+        // Start user tasks if running in User mode.
+        if running_mode_config.user {
+            sh_handler.start_user_tasks()
         }
     }
 
@@ -861,11 +872,11 @@ fn start_consensus(
 /// Start a development node.
 pub async fn start_dev_node(
     config: Configuration,
-    provider_options: Option<ProviderOptions>,
+    running_mode_config: RunningModeConfig,
     hwbench: Option<sc_sysinfo::HwBench>,
     para_id: ParaId,
 ) -> sc_service::error::Result<TaskManager> {
-    start_dev_impl(config, provider_options, hwbench, para_id).await
+    start_dev_impl(config, running_mode_config, hwbench, para_id).await
 }
 
 /// Start a parachain node.
@@ -873,7 +884,7 @@ pub async fn start_parachain_node(
     parachain_config: Configuration,
     polkadot_config: Configuration,
     collator_options: CollatorOptions,
-    provider_options: Option<ProviderOptions>,
+    running_mode_config: RunningModeConfig,
     para_id: ParaId,
     hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
@@ -881,7 +892,7 @@ pub async fn start_parachain_node(
         parachain_config,
         polkadot_config,
         collator_options,
-        provider_options,
+        running_mode_config,
         para_id,
         hwbench,
     )
