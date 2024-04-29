@@ -78,7 +78,7 @@ pub struct RunningModeConfig {
 
     // Temporarily assuming the user is not a parachain (until we have an XCM interface)
     // but a human running StorageHub on her machine.
-    // TODO: ditch this after we have the XCM interface implementation.
+    // TODO: reconsider this once we have the XCM interface implementation.
     #[clap(long)]
     pub user: bool,
 }

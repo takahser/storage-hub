@@ -50,7 +50,6 @@ use tokio::sync::RwLock;
 
 use crate::{
     cli::{ProviderType, RunningModeConfig},
-    command::ProviderOptions,
     services::{
         blockchain::{spawn_blockchain_service, KEY_TYPE},
         file_transfer::spawn_file_transfer_service,
